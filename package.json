@@ -1,0 +1,30 @@
+{
+  "name": "fpp-ocr",
+  "private": true,
+  "version": "1.0.0",
+  "description": "FPP Bot that uses OCR to extract textual data.",
+  "repository": "https://github.com/menome",
+  "license": "Commercial",
+  "dependencies": {
+    "forever": "^0.15.3",
+    "express": "^4.16.4",
+    "minio": "^7.0.5",
+    "neo4j-driver": "^1.7.2",
+    "request": "^2.88.0",
+    "decypher": "^0.13.0",
+    "uuid": "^3.3.2",
+    "unfluff": "^3.2.0",
+    "convict": "^4.4.1",
+    "truncate-utf8-bytes": "^1.0.2",
+    "@menome/botframework": "^2.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.9"
+  },
+  "scripts": {
+    "start": "[ \"$NODE_ENV\" = \"production\" ] && npm run prod || npm run dev",
+    "dev": "node ./node_modules/nodemon/bin/nodemon.js app/app.js",
+    "prod": "./node_modules/forever/bin/forever --minUptime 5000 --spinSleepTime 1000 app/app.js",
+    "test": "./node_modules/mocha/bin/mocha -C test"
+  }
+}

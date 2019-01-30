@@ -1,0 +1,26 @@
+{
+  "port": 3019,
+  "neo4j": {
+    "enable": true,
+    "url": "bolt://localhost",
+    "user": "neo4j",
+    "pass": "CodaGlenBaronyMonk"
+  },
+  "rabbit": {
+    "enable": true,
+    "url": "amqp://rabbitmq:CodaGlenBaronyMonk@localhost:5672?heartbeat=3600",
+    "routingKey": "fpp.ocr",
+    "exchange": "fpp",
+    "exchangeType": "topic"
+  },
+  "librarian": {
+    "enable": true,
+    "host": "http://localhost:3020",
+    "username": "botuser",
+    "password": "CodaGlenBaronyMonk"
+  },
+  "downstream_actions": {
+    "success": "fpp.topicmodels",
+    "error": false
+  }
+}
