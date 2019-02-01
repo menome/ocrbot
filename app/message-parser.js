@@ -1,7 +1,7 @@
 "use strict";
 const queryBuilder = require('./queryBuilder');
 const RabbitClient = require('@menome/botframework/rabbitmq');
-const truncate = require("truncate-utf8-bytes");
+// const truncate = require("truncate-utf8-bytes");
 const helpers = require('./helpers');
 const twrapper = require('./tesseract-wrapper');
 
@@ -62,8 +62,10 @@ module.exports = function(bot) {
 
   // Extracts summary text from file
   function ocr(mimetype, file) {
-    return twrapper.extract(file, {mimetype}).then((text) => {
-      return truncate(text.toString(),30000).replace(/\s+/g, ' ');
+    bot.logger.info("Attempting to perform OCR on image.")
+    return twrapper.extract(file, {mimetype, bot}).then((text) => {
+      // return truncate(text.toString(),30000).replace(/\s+/g, ' ');
+      return text.toString().replace(/\s+/g, ' ');
     })
   }
 }

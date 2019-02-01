@@ -1,6 +1,7 @@
 "use strict";
 const path = require("path");
 const child_process = require("child_process");
+const helpers = require("./helpers");
 
 module.exports = {
   extract
@@ -21,15 +22,54 @@ function extract(inFilePath, options = {}) {
   if(!options.mimetype) options.mimetype = "application/octet-stream";
 
   // Either extract raw, or convert to TIFFs (if it's a pdf) and then extract.
+  if(options.mimetype == "application/pdf") {
+    return extractFromPdf(inFilePath, options);
+  }
   if(supportedTypes.indexOf(options.mimetype) != -1) {
-    return extractText(inFilePath, options)
+    return extractText(inFilePath, options);
   }
   else {
-    throw new Error("Not an OCR-able Image")
+    throw new Error("Not an OCR-able Image");
   }
 }
 
-// Returns a buffer.
+// Takes a PDF file, breaks it into page files, extracts text from each, removes intermediate files.
+function extractFromPdf(inFilePath, options) {
+  return new Promise((resolve,reject) => {
+    const outFilePath = inFilePath + "-output.tiff";
+
+    let outTiff = child_process.spawn("convert", [
+      "-density", "100", // DPI
+      "-background", "white",
+      "-colorspace", "Gray", // Make it black and white.
+      "+matte",
+      inFilePath,
+      outFilePath
+    ], {
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+
+    var outTiffErr = [];
+    outTiff.stderr.on('data', function(data) {
+      outTiffErr.push(data);
+    })
+
+    outTiff.on("exit", (code) => {
+      options.bot.logger.info("Generated TIFFs. Performing OCR.");
+      if (code !== 0) {
+        helpers.deleteFile(outFilePath);
+        return reject(new Error(Buffer.concat(outTiffErr).toString('utf-8')));
+      }
+
+      return extractText(outFilePath).then((result) => {
+        helpers.deleteFile(outFilePath);
+        return resolve(result);
+      });
+    })
+  })
+}
+
+// Takes the input file, returns a buffer full of text.
 function extractText(inFilePath) {
   return new Promise((resolve,reject) => {
     let convert_child = child_process.spawn("tesseract", [

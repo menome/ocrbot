@@ -8,7 +8,7 @@ module.exports = {}
  */
 module.exports.fulltextQuery = function(uuid, fulltext) {
   var query = new Query();
-  query.match("(f:Card {Uuid: {uuid}})", {uuid: uuid})
-  query.set("f.FullText = {fulltext}",{fulltext: fulltext} )
+  query.match("(f:Card {Uuid: $uuid})", {uuid: uuid})
+  query.set("f.FullText = $fulltext, f.OcrMethod = $ocrMethod",{fulltext: fulltext, ocrMethod: "tesseract"} )
   return query;
 }
