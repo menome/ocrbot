@@ -10,7 +10,7 @@ RUN mkdir /srv/app
 WORKDIR /srv/app
 
 # Dependencies from package manager
-RUN apt-get update && apt-get install -y tesseract-ocr g++
+RUN apt-get update && apt-get install -y tesseract-ocr g++ imagemagick xpdf ghostscript
 
 # Add build file
 COPY ./package.json package.json

@@ -55,12 +55,12 @@ function extractFromPdf(inFilePath, options) {
     })
 
     outTiff.on("exit", (code) => {
-      options.bot.logger.info("Generated TIFFs. Performing OCR.");
       if (code !== 0) {
         helpers.deleteFile(outFilePath);
         return reject(new Error(Buffer.concat(outTiffErr).toString('utf-8')));
       }
 
+      options.bot.logger.info("Generated TIFFs. Performing OCR.");
       return extractText(outFilePath).then((result) => {
         helpers.deleteFile(outFilePath);
         return resolve(result);
