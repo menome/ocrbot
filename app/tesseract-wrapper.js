@@ -39,9 +39,10 @@ function extractFromPdf(inFilePath, options) {
     const outFilePath = inFilePath + "-output.tiff";
 
     let outTiff = child_process.spawn("convert", [
-      "-density", "100", // DPI
+      "-density", "300", // DPI
       "-background", "white",
       "-colorspace", "Gray", // Make it black and white.
+      "-unsharp", "0x1",
       "+matte",
       inFilePath,
       outFilePath

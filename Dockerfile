@@ -4,7 +4,8 @@ FROM node:10.15
 
 EXPOSE 80
 ENV PORT 80
-ENV MAGICK_DISK_LIMIT=2GiB
+ENV MAGICK_DISK_LIMIT=0
+ENV MAGICK_MEMORY_LIMIT=0
 
 # Commands will run in this directory
 RUN mkdir /srv/app
