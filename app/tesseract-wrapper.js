@@ -43,8 +43,6 @@ function extractFromPdf(inFilePath, options) {
       "-background", "white",
       "-colorspace", "Gray", // Make it black and white.
       "-unsharp", "0x1",
-      "-limit", "disk", "unlimited",
-      "-limit", "memory", "512MiB",
       "+matte",
       inFilePath,
       outFilePath

@@ -4,6 +4,8 @@ FROM node:10.15
 
 EXPOSE 80
 ENV PORT 80
+ENV MAGICK_TEMPORARY_PATH /tmp
+COPY ./imagemagick-policy.xml /etc/ImageMagick-6/policy.xml
 
 # Commands will run in this directory
 RUN mkdir /srv/app
