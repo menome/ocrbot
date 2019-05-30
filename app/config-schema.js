@@ -14,5 +14,11 @@ module.exports = {
           throw new Error("Routing keys must be strings, or 'false'.")
       })
     }
+  },
+  paginate: {
+    doc: "For PDF Documents, should we split up fulltext into new pages?",
+    format: Boolean,
+    default: false,
+    env: "PAGINATE_RESULTS"
   }
 };

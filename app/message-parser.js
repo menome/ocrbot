@@ -1,9 +1,10 @@
 "use strict";
 const queryBuilder = require('./queryBuilder');
 const RabbitClient = require('@menome/botframework/rabbitmq');
-// const truncate = require("truncate-utf8-bytes");
+const truncate = require("truncate-utf8-bytes");
 const helpers = require('./helpers');
 const twrapper = require('./tesseract-wrapper');
+const natural = require("natural")
 
 module.exports = function(bot) {
   var outQueue = new RabbitClient(bot.config.get('rabbit'));
@@ -45,9 +46,32 @@ module.exports = function(bot) {
     var tmpPath = "/tmp/"+msg.Uuid;
 
     return helpers.getFile(bot, msg.Library, msg.Path, tmpPath).then((tmpPath) => {
-      return ocr(mimetype, tmpPath).then((fulltext) => {
+      return ocr(mimetype, tmpPath).then(async (extracted) => {
+        let pageTextQuery = false;
+        let fulltext = extracted;
+        if(Array.isArray(extracted)) {
+          pageTextQuery = queryBuilder.fulltextPageQuery({uuid: msg.Uuid, pageTextArray: fulltext});
+          fulltext = truncate(extracted.join(" "), 30000);
+          await bot.neo4j.query(pageTextQuery.compile(), pageTextQuery.params()).then(() => {
+            bot.logger.info("Added fulltext of pages to file %s", msg.Path);
+          })
+        }
+
+        let tokenizer = new natural.WordTokenizer();
+        let tokens = tokenizer.tokenize(fulltext);
+
+        let trimmedFulltext = helpers.removeStopWordsFromArray(natural.LancasterStemmer.tokenizeAndStem(fulltext)).join(" ")
         if(fulltext === false) return;
-        var fulltextQuery = queryBuilder.fulltextQuery(msg.Uuid, fulltext);
+        if(fulltext.trim() === "") {
+          return "empty-"+mimetype;
+        }
+
+        let wordcount = tokens.length;
+        let totalSpelledCorrectly = helpers.spellCheckList(tokens)
+        let correctSpellingRatio = totalSpelledCorrectly / wordcount;
+
+        var fulltextQuery = queryBuilder.fulltextQuery({uuid: msg.Uuid, fulltext, fulltextKeywords: trimmedFulltext, wordcount, 
+          correctSpellingRatio: correctSpellingRatio !== 0 ? correctSpellingRatio : undefined});
 
         return bot.neo4j.query(fulltextQuery.compile(), fulltextQuery.params()).then(() => {
           bot.logger.info("Added fulltext to file %s", msg.Path);
@@ -65,6 +89,10 @@ module.exports = function(bot) {
     bot.logger.info("Attempting to perform OCR on image.")
     return twrapper.extract(file, {mimetype, bot}).then((text) => {
       // return truncate(text.toString(),30000).replace(/\s+/g, ' ');
+      if(bot.config.get("paginate") && mimetype === "application/pdf") {
+        return text.toString()
+      }
+
       return text.toString().replace(/\s+/g, ' ');
     })
   }
