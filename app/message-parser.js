@@ -50,7 +50,25 @@ module.exports = function(bot) {
         let pageTextQuery = false;
         let fulltext = extracted;
         if(Array.isArray(extracted)) {
-          pageTextQuery = queryBuilder.fulltextPageQuery({uuid: msg.Uuid, pageTextArray: fulltext});
+          // Do processing for other metadata. Correct spelling ratio and stuff.
+          let trimmedArray = [];
+          let wordCountArray = [];
+          let correctSpellingRatioArray = [];
+
+          extracted.forEach((textBlock, idx) => {
+            let tokenizer = new natural.WordTokenizer();
+            let tokens = tokenizer.tokenize(textBlock);
+            wordCountArray[idx] = tokens.length;
+            correctSpellingRatioArray[idx] = helpers.spellCheckList(tokens) / wordCountArray[idx]
+
+            trimmedArray[idx] = helpers.removeStopWordsFromArray(natural.LancasterStemmer.tokenizeAndStem(textBlock)).join(" ")
+            if(textBlock === false) return;
+            if(textBlock.trim() === "") {
+              return "empty-"+mimetype;
+            }
+          })
+
+          pageTextQuery = queryBuilder.fulltextPageQuery({uuid: msg.Uuid, pageTextArray: fulltext, trimmedArray, wordCountArray, correctSpellingRatioArray});
           fulltext = truncate(extracted.join(" "), 30000);
           await bot.neo4j.query(pageTextQuery.compile(), pageTextQuery.params()).then(() => {
             bot.logger.info("Added fulltext of pages to file %s", msg.Path);
@@ -90,7 +108,7 @@ module.exports = function(bot) {
     return twrapper.extract(file, {mimetype, bot}).then((text) => {
       // return truncate(text.toString(),30000).replace(/\s+/g, ' ');
       if(bot.config.get("paginate") && mimetype === "application/pdf") {
-        return text.toString()
+        return text.toString().split("\f");
       }
 
       return text.toString().replace(/\s+/g, ' ');

@@ -75,7 +75,8 @@ function extractText(inFilePath) {
   return new Promise((resolve,reject) => {
     let convert_child = child_process.spawn("tesseract", [
       path.resolve(inFilePath),
-      "stdout"
+      "stdout",
+      "-c", "include_page_breaks=1"
     ], {
       stdio: ['ignore', 'pipe', 'pipe']
     });
