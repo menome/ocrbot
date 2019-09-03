@@ -1,7 +1,7 @@
 {
   "name": "fpp-ocr",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "FPP Bot that uses OCR to extract textual data.",
   "repository": "https://github.com/menome",
   "license": "Commercial",
